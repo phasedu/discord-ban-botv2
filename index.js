@@ -1,3 +1,6 @@
+const express = require('express');
+const app = express();
+
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 
 const client = new Client({
@@ -13,15 +16,28 @@ const TOKEN = process.env.TOKEN;
 // 🔑 PUT YOUR CHANNEL ID HERE
 const TRAP_CHANNEL_ID = '1493606848371359884';
 
+// 🌐 Web server (for Render)
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is alive!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Web server running on port ${PORT}`);
+});
+
+// 🤖 Bot ready
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-// ❤️ Heartbeat
+// ❤️ Heartbeat (prevents idle issues)
 setInterval(() => {
   console.log("Still alive...");
 }, 300000);
 
+// 🚨 Trap channel auto-ban
 client.on('messageCreate', async (message) => {
   try {
     if (message.author.bot) return;
@@ -29,6 +45,7 @@ client.on('messageCreate', async (message) => {
 
     if (message.channel.id !== TRAP_CHANNEL_ID) return;
 
+    // Ignore admins
     if (message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
     // Check bot permissions
@@ -37,7 +54,7 @@ client.on('messageCreate', async (message) => {
       return;
     }
 
-    // Delete message (optional)
+    // Delete message (optional but recommended)
     await message.delete().catch(() => {});
 
     // Ban user
