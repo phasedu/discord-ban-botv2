@@ -15,7 +15,7 @@ const TOKEN = process.env.TOKEN;
 
 // 🔑 CONFIG
 const TRAP_CHANNEL_ID = '1493606848371359884';
-const LOG_CHANNEL_ID = '1494098377510486046 ';
+const LOG_CHANNEL_ID = '1494098377510486046';
 
 // 🌐 Web server (Render fix)
 const PORT = process.env.PORT || 3000;
