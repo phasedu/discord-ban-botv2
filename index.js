@@ -14,7 +14,11 @@ const TOKEN = process.env.TOKEN;
 const TRAP_CHANNEL_ID = '1493606848371359884'
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-});
+})
+
+setInterval(() => {
+  console.log("Still alive...");
+}, 300000); // every 5 minutes
 
 client.on('messageCreate', async (message) => {
   try {
