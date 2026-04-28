@@ -1,6 +1,7 @@
 {
-  "name": "discord-bot",
+  "name": "discord-ban-bot",
   "version": "1.0.0",
+  "description": "Auto-ban trap channel Discord bot",
   "main": "index.js",
   "type": "commonjs",
   "engines": {
@@ -11,6 +12,6 @@
   },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "express": "^4.18.2",
+    "express": "^4.18.2"
   }
 }
