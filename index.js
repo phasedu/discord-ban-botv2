@@ -1,18 +1,7 @@
 const express = require('express');
 const app = express();
 
-const { Client, GatewayIntentBits, PermissionsBitField, Events } = require('discord.js');
-const admin = require('firebase-admin');
-
-// 🔐 Firebase (from Render env)
-const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
-serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
+const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -28,7 +17,7 @@ const TOKEN = process.env.TOKEN;
 const TRAP_CHANNEL_ID = '1493606848371359884';
 const LOG_CHANNEL_ID = '1494114476767838358';
 
-// 🌐 Web server (Render)
+// 🌐 Web server (Render fix)
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
@@ -39,12 +28,12 @@ app.listen(PORT, () => {
   console.log(`Web server running on port ${PORT}`);
 });
 
-// 🤖 Ready
+// 🤖 Ready event
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-// ❤️ Heartbeat
+// ❤️ Heartbeat (prevents idle)
 setInterval(() => {
   console.log("Still alive...");
 }, 300000);
@@ -57,83 +46,52 @@ client.on('messageCreate', async (message) => {
 
     if (message.channel.id !== TRAP_CHANNEL_ID) return;
 
+    // Ignore admins
     if (message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
-    if (!message.guild.members.me.permissions.has(PermissionsBitField.Flags.BanMembers)) return;
+    // Check bot permissions
+    if (!message.guild.members.me.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+      console.log("Missing ban permissions");
+      return;
+    }
 
+    // 🧹 Delete trigger message
     await message.delete().catch(() => {});
 
+    // 🧹 Delete recent messages from this user (in this channel)
     const messages = await message.channel.messages.fetch({ limit: 100 });
     const userMessages = messages.filter(msg => msg.author.id === message.author.id);
 
     await message.channel.bulkDelete(userMessages, true).catch(() => {});
 
+    // 🔨 Ban user + delete last 24h messages
     await message.guild.members.ban(message.author.id, {
-      reason: 'Trap triggered',
+      reason: 'Triggered anti-spam trap channel',
       deleteMessageSeconds: 60 * 60 * 24
     });
 
+    console.log(`Banned ${message.author.tag}`);
+
+    // 📢 Log to channel
     const logChannel = message.guild.channels.cache.get(LOG_CHANNEL_ID);
 
     if (logChannel) {
-      logChannel.send(`🚨 Banned ${message.author.tag} (Trap channel)`);
+      logChannel.send({
+        content: `🚨 **User Banned**
+User: ${message.author.tag}
+ID: ${message.author.id}
+Channel: <#${message.channel.id}>
+Reason: Trap channel triggered`
+      });
     }
 
   } catch (err) {
-    console.error(err);
-  }
-});
-
-// ⚠️ /warn command
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName === 'warn') {
-    try {
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason');
-
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
-        return interaction.reply({ content: "No permission.", ephemeral: true });
-      }
-
-      const ref = db.collection('warnings').doc(user.id);
-      const doc = await ref.get();
-
-      let count = 0;
-      if (doc.exists) count = doc.data().count || 0;
-
-      count++;
-
-      await ref.set({ count });
-
-      const logChannel = interaction.guild.channels.cache.get(LOG_CHANNEL_ID);
-      const date = new Date().toLocaleString();
-
-      if (logChannel) {
-        logChannel.send(`⚠️ Warning Issued
-
-Moderator: ${interaction.user.tag}
-User: ${user.tag}
-Date: ${date}
-Reason: ${reason}
-Total Warnings: ${count}`);
-      }
-
-      await interaction.reply({
-        content: `✅ Warned ${user.tag} (Total: ${count})`,
-        ephemeral: true
-      });
-
-    } catch (err) {
-      console.error(err);
-      interaction.reply({ content: "Error.", ephemeral: true });
-    }
+    console.error('Ban error:', err);
   }
 });
 
 client.login(TOKEN);
 
-// 🛡️ Crash protection
+// 🛡️ Prevent crashes
 process.on('unhandledRejection', console.error);
 process.on('uncaughtException', console.error);
