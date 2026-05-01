@@ -72,15 +72,20 @@ client.on('messageCreate', async (message) => {
     }
 
     // =========================
+    // 🧠 COMMAND PARSER (FIX)
+    // =========================
+    const args = message.content.trim().split(/ +/);
+    const command = args[0].toLowerCase();
+
+    // =========================
     // ⚠️ WARN
     // =========================
-    else if (message.content.startsWith('!warn')) {
+    if (command === '!warn') {
 
       if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
         return message.reply("No permission.");
       }
 
-      const args = message.content.split(' ');
       const user = message.mentions.users.first();
       const reason = args.slice(2).join(' ') || 'No reason provided';
 
@@ -112,14 +117,13 @@ client.on('messageCreate', async (message) => {
         .setTimestamp();
 
       message.channel.send({ embeds: [embed] });
-
       return;
     }
 
     // =========================
     // 📊 WARNINGS
     // =========================
-    else if (message.content.startsWith('!warnings')) {
+    else if (command === '!warnings') {
 
       const user = message.mentions.users.first();
       if (!user) return message.reply('Mention a user.');
@@ -133,7 +137,8 @@ client.on('messageCreate', async (message) => {
       const embed = new EmbedBuilder()
         .setTitle(`📊 Warnings for ${user.tag}`)
         .setColor(0x0099ff)
-        .setDescription(`Total: ${userWarnings.length}`);
+        .setDescription(`Total: ${userWarnings.length}`)
+        .setTimestamp();
 
       userWarnings.forEach(w => {
         embed.addFields({
@@ -143,20 +148,18 @@ client.on('messageCreate', async (message) => {
       });
 
       message.channel.send({ embeds: [embed] });
-
       return;
     }
 
     // =========================
-    // 🧹 CLEAR ONE WARN
+    // 🧹 CLEAR ONE
     // =========================
-    else if (message.content.startsWith('!clearwarn ')) {
+    else if (command === '!clearwarn') {
 
       if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
         return message.reply("No permission.");
       }
 
-      const args = message.content.split(' ');
       const user = message.mentions.users.first();
       const warnID = args[2];
 
@@ -188,14 +191,13 @@ client.on('messageCreate', async (message) => {
         .setTimestamp();
 
       message.channel.send({ embeds: [embed] });
-
       return;
     }
 
     // =========================
-    // 🔥 CLEAR ALL WARNS
+    // 🔥 CLEAR ALL
     // =========================
-    else if (message.content.startsWith('!clearwarnall')) {
+    else if (command === '!clearwarnall') {
 
       if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
         return message.reply("No permission.");
@@ -223,7 +225,6 @@ client.on('messageCreate', async (message) => {
         .setTimestamp();
 
       message.channel.send({ embeds: [embed] });
-
       return;
     }
 
