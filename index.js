@@ -29,6 +29,7 @@ const TOKEN = process.env.TOKEN;
 // CONFIG
 // =========================
 const TRAP_CHANNEL_ID = '1494113781289058375';
+const TRAP_LOG_CHANNEL_ID = '1494114476767838358';
 
 // =========================
 // WEB SERVER (Render)
@@ -105,6 +106,44 @@ client.on('messageCreate', async (message) => {
       reason: 'Triggered anti-spam trap channel',
       deleteMessageSeconds: 60 * 60 * 24
     });
+
+    // =========================
+    // LOG EMBED
+    // =========================
+    try {
+
+      const logChannel =
+        await client.channels.fetch(TRAP_LOG_CHANNEL_ID);
+
+      const embed = new EmbedBuilder()
+        .setTitle('🚨 Trap Triggered')
+        .setColor(0xff0000)
+        .addFields(
+          {
+            name: 'User',
+            value: `${message.author.tag}`,
+            inline: true
+          },
+          {
+            name: 'User ID',
+            value: `${message.author.id}`,
+            inline: true
+          },
+          {
+            name: 'Channel',
+            value: `${message.channel}`,
+            inline: true
+          }
+        )
+        .setTimestamp();
+
+      await logChannel.send({
+        embeds: [embed]
+      });
+
+    } catch (err) {
+      console.error('Trap log error:', err);
+    }
 
     console.log(
       `Banned ${message.author.tag} for trap channel message`
@@ -559,4 +598,4 @@ client.login(TOKEN);
 // CRASH PROTECTION
 // =========================
 process.on('unhandledRejection', console.error);
-process.on('uncaughtException', console.error); 
+process.on('uncaughtException', console.error);
