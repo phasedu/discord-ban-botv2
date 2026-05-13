@@ -7,7 +7,7 @@ const {
   PermissionsBitField,
   EmbedBuilder,
   Events,
-  ActionRowBuilder,
+ ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType
@@ -30,6 +30,7 @@ const TOKEN = process.env.TOKEN;
 // =========================
 const TRAP_CHANNEL_ID = '1494113781289058375';
 const TRAP_LOG_CHANNEL_ID = '1494114476767838358';
+const WARNING_ALERT_CHANNEL_ID = '1499331256918478929';
 
 // =========================
 // WEB SERVER (Render)
@@ -195,6 +196,57 @@ client.on(Events.InteractionCreate, async (interaction) => {
     warnings[user.id].push(warning);
 
     saveWarnings();
+
+    // =========================
+    // WARNING THRESHOLD ALERT
+    // =========================
+    if (warnings[user.id].length === 3) {
+
+      try {
+
+        const alertChannel =
+          await client.channels.fetch(
+            WARNING_ALERT_CHANNEL_ID
+          );
+
+        const alertEmbed = new EmbedBuilder()
+          .setTitle('⚠️ Warning Threshold Reached')
+          .setColor(0xff9900)
+          .addFields(
+            {
+              name: 'User',
+              value: `${user.tag}`,
+              inline: true
+            },
+            {
+              name: 'Total Warnings',
+              value: '3',
+              inline: true
+            },
+            {
+              name: 'Moderator',
+              value: interaction.user.tag,
+              inline: true
+            },
+            {
+              name: 'Latest Reason',
+              value: reason
+            }
+          )
+          .setTimestamp();
+
+        await alertChannel.send({
+          embeds: [alertEmbed]
+        });
+
+      } catch (err) {
+        console.error(
+          'Warning alert error:',
+          err
+        );
+      }
+
+    }
 
     // =========================
     // PUBLIC WARN EMBED
