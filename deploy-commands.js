@@ -53,3 +53,25 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
   console.log('Slash commands registered');
 })();
+
+new SlashCommandBuilder()
+  .setName('delete')
+  .setDescription('Delete a specific message')
+  .addChannelOption(option =>
+    option
+      .setName('channel')
+      .setDescription('Channel containing the message')
+      .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('messageid')
+      .setDescription('ID of the message')
+      .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('reason')
+      .setDescription('Reason for deleting the message')
+      .setRequired(false)
+  )
