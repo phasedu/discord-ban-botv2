@@ -755,9 +755,9 @@ else if (interaction.commandName === 'delete') {
       ephemeral: true
     });
 
-  }
+  } // end /delete
 
-    });
+    }); // end InteractionCreate
 
 client.login(TOKEN);
 
