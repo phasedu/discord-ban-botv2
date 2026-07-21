@@ -754,6 +754,8 @@ else if (interaction.commandName === 'delete') {
         '❌ Message not found or I cannot access it.',
       ephemeral: true
     });
+   
+  } // end catch
 
   } // end /delete
 
