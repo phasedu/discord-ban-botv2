@@ -647,6 +647,120 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.login(TOKEN);
 
 // =========================
+// /delete
+// =========================
+else if (
+  interaction.commandName === 'delete'
+) {
+
+  if (
+    !interaction.memberPermissions.has(
+      PermissionsBitField.Flags.KickMembers
+    )
+  ) {
+    return interaction.reply({
+      content: '❌ No permission.',
+      ephemeral: true
+    });
+  }
+
+  const channel =
+    interaction.options.getChannel('channel');
+
+  const messageId =
+    interaction.options.getString('messageid');
+
+  const reason =
+    interaction.options.getString('reason') ||
+    'No reason provided';
+
+  try {
+
+    const message =
+      await channel.messages.fetch(messageId);
+
+    const messageContent =
+      message.content.length > 1000
+        ? message.content.slice(0, 1000) + '...'
+        : (message.content || '[No text content]');
+
+    const userTag =
+      message.author.tag;
+
+    await message.delete();
+
+    // =========================
+    // MOD LOG
+    // =========================
+    try {
+
+      const logChannel =
+        await client.channels.fetch(
+          WARNING_ALERT_CHANNEL_ID
+        );
+
+      const embed = new EmbedBuilder()
+        .setTitle('🗑️ Message Deleted')
+        .setColor(0xff4444)
+        .addFields(
+          {
+            name: '👮 Moderator',
+            value: interaction.user.tag,
+            inline: true
+          },
+          {
+            name: '👤 User',
+            value: userTag,
+            inline: true
+          },
+          {
+            name: '📍 Channel',
+            value: `${channel}`,
+            inline: true
+          },
+          {
+            name: '📝 Reason',
+            value: reason
+          },
+          {
+            name: '💬 Deleted Message',
+            value: messageContent
+          }
+        )
+        .setTimestamp();
+
+      await logChannel.send({
+        embeds: [embed]
+      });
+
+    } catch (err) {
+      console.error(
+        'Delete log error:',
+        err
+      );
+    }
+
+    return interaction.reply({
+      content:
+        '✅ Message deleted successfully.',
+      ephemeral: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return interaction.reply({
+      content:
+        '❌ Message not found or I cannot access it.',
+      ephemeral: true
+    });
+
+  }
+
+
+
+// =========================
 // CRASH PROTECTION
 // =========================
 process.on('unhandledRejection', console.error);
