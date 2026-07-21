@@ -649,9 +649,7 @@ client.login(TOKEN);
 // =========================
 // /delete
 // =========================
-else if (
-  interaction.commandName === 'delete'
-) {
+else if (interaction.commandName === 'delete') {
 
   if (
     !interaction.memberPermissions.has(
@@ -676,71 +674,26 @@ else if (
 
   try {
 
-    const message =
-      await channel.messages.fetch(messageId);
+    if (!channel.isTextBased()) {
+      return interaction.reply({
+        content: '❌ Please select a text channel.',
+        ephemeral: true
+      });
+    }
 
-    const messageContent =
-      message.content.length > 1000
-        ? message.content.slice(0, 1000) + '...'
-        : (message.content || '[No text content]');
-
-    const userTag =
-      message.author.tag;
-
-    await message.delete();
-
-    // =========================
-// /delete
-// =========================
-else if (
-  interaction.commandName === 'delete'
-) {
-
-  if (
-    !interaction.memberPermissions.has(
-      PermissionsBitField.Flags.KickMembers
-    )
-  ) {
-    return interaction.reply({
-      content: '❌ No permission.',
-      ephemeral: true
-    });
-  }
-
-  const channel =
-    interaction.options.getChannel('channel');
-
-  const messageId =
-    interaction.options.getString('messageid');
-
-  const reason =
-    interaction.options.getString('reason') ||
-    'No reason provided';
-
-  try {
-
-    // =========================
-    // FETCH MESSAGE
-    // =========================
     const message =
       await channel.messages.fetch(messageId);
 
     const userTag =
-      message.author.tag;
+      message.author?.tag || 'Unknown User';
 
     const messageContent =
-      message.content.length > 1000
+      message.content?.length > 1000
         ? message.content.slice(0, 1000) + '...'
         : (message.content || '[No text content]');
 
-    // =========================
-    // DELETE MESSAGE
-    // =========================
     await message.delete();
 
-    // =========================
-    // MOD LOG
-    // =========================
     try {
 
       const logChannel =
@@ -771,7 +724,43 @@ else if (
             name: '📝 Reason',
             value: reason
           },
-  {
+          {
+            name: '💬 Deleted Message',
+            value: messageContent
+          }
+        )
+        .setTimestamp();
+
+      await logChannel.send({
+        embeds: [embed]
+      });
+
+    } catch (err) {
+      console.error(
+        'Delete log error:',
+        err
+      );
+    }
+
+    return interaction.reply({
+      content:
+        '✅ Message deleted successfully.',
+      ephemeral: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return interaction.reply({
+      content:
+        '❌ Message not found or I cannot access it.',
+      ephemeral: true
+    });
+
+  }
+
+    }
 
 
 
