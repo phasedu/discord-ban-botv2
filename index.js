@@ -642,9 +642,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   }
 
-});
-
-client.login(TOKEN);
 
 // =========================
 // /delete
@@ -760,8 +757,9 @@ else if (interaction.commandName === 'delete') {
 
   }
 
-    }
+    });
 
+client.login(TOKEN);
 
 
 // =========================
