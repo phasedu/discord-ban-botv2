@@ -161,6 +161,97 @@ client.on('messageCreate', async (message) => {
 // =========================
 client.on(Events.InteractionCreate, async (interaction) => {
 
+  // =========================
+// MESSAGE CONTEXT MENU
+
+// =========================
+  
+if (
+  interaction.isMessageContextMenuCommand() &&
+  interaction.commandName === 'Delete Message'
+) {
+
+  if (
+    !interaction.memberPermissions.has(
+      PermissionsBitField.Flags.KickMembers
+    )
+  ) {
+    return interaction.reply({
+      content: '❌ No permission.',
+      ephemeral: true
+    });
+  }
+
+  try {
+
+    const message = interaction.targetMessage;
+
+    const userTag =
+      message.author?.tag || 'Unknown User';
+
+    const messageContent =
+      message.content?.length > 1000
+        ? message.content.slice(0, 1000) + '...'
+        : (message.content || '[No text content]');
+
+    await message.delete();
+
+    const logChannel =
+      await client.channels.fetch(
+        WARNING_ALERT_CHANNEL_ID
+      );
+
+    const embed = new EmbedBuilder()
+      .setTitle('🗑️ Message Deleted')
+      .setColor(0xff4444)
+      .addFields(
+        {
+          name: '👮 Moderator',
+          value: interaction.user.tag,
+          inline: true
+        },
+        {
+          name: '👤 User',
+          value: userTag,
+          inline: true
+        },
+        {
+          name: '📍 Channel',
+          value: `${message.channel}`,
+          inline: true
+        },
+        {
+          name: '🆔 Message ID',
+          value: message.id
+        },
+        {
+          name: '💬 Deleted Message',
+          value: messageContent
+        }
+      )
+      .setTimestamp();
+
+    await logChannel.send({
+      embeds: [embed]
+    });
+
+    return interaction.reply({
+      content: '✅ Message deleted.',
+      ephemeral: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    return interaction.reply({
+      content: '❌ Could not delete message.',
+      ephemeral: true
+    });
+
+  }
+
+          }
   if (!interaction.isChatInputCommand()) return;
 
   // =========================
